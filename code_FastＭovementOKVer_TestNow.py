@@ -214,7 +214,7 @@ while True:
     if setNT == 0:
         setNT = 1
         print("NTSetTime......")
-        time.sleep(1)
+        time.sleep(5)
     
     
     
