@@ -14,7 +14,7 @@ cascade = cv2.CascadeClassifier(cascade_path)
 
 # End
 
-global preVoltX,preVoltY,prePreVoltX,prePreVoltY,diffVoltX,diffVoltY,noFacePreVoltX,noFacePreVoltY
+global preVoltX,preVoltY,prePreVoltX,prePreVoltY,diffVoltX,diffVoltY,noFacePreVoltX,noFacePreVoltY,lastVolt
 preVoltX = 10.0
 preVoltY = 10.0
 prePreVoltX = 0.0
@@ -23,6 +23,7 @@ diffVoltX = 0.0
 diffVoltY = 0.0
 noFacePreVoltX = 0.0
 noFacePreVoltY = 0.0
+lastVolt = [0,0]
 
 def Camera():
     ret, frame = cap.read()
@@ -64,7 +65,7 @@ def CalcVolt(facePositionX ,facePositionY):
     #print(facePositionX,facePositionY)
     
     
-    volt = [noFacePreVoltX,noFacePreVoltY]
+    volt = [lastVolt[0],lastVolt[1]]
     magX = 4095 / (maxPosX - minPosX)
     magY = 4095 / (maxPosY - minPosY)
     #print(volt[0],volt[1])
@@ -75,6 +76,7 @@ def CalcVolt(facePositionX ,facePositionY):
         
     
     print("--------------------------")
+    
     
     if facePositionX <= 0.0:
         volt[0] = volt[0] + diffVoltX
@@ -88,15 +90,13 @@ def CalcVolt(facePositionX ,facePositionY):
         noFacePreVoltY = volt[1]
     else:
         volt[1] = facePositionY * magY
-        noFacePreVoltX = 0.0
+        noFacePreVoltY = 0.0
     
     
     if volt[0] < 0:
         volt[0] = 0
         if facePositionX <= 0.0:
-            print("No Face!")
             noFacePreVoltX = volt[0]
-            print(noFacePreVoltX)
             
     elif volt[0] > 4095:
         volt[0] = 4095
@@ -111,6 +111,8 @@ def CalcVolt(facePositionX ,facePositionY):
         if facePositionY <= 0.0:
             noFacePreVoltY = volt[1]
         
+    print("NFPos")
+    print(noFacePreVoltX,noFacePreVoltY)
         
     print("LastVolt")
     print(volt[0],volt[1])
@@ -153,6 +155,8 @@ def SetVolt(voluNum,address):
 
 cameraUpdateTime = 0
 
+setNT = 0
+
 # 更新処理
 while True:
     
@@ -189,20 +193,28 @@ while True:
         preVoltY = volt[1]
         
     
+    if setNT == 0:
+        volt[0] = 4095 / 2
+        volt[1] = 4095 / 2
+    
     # 4725用の電圧の数値(0～4095で指定。0で0.0V。4095で3.3V)
     #voltNum4725 = int(volt[0])
     voltNum4725 = int(volt[1])
     # 4726用の電圧の数値(0～4095で指定。0で0.0V。4095で3.3V)
     voltNum4726 = int(volt[0])
 
-    #print(voltNum4726,voltNum4725 )
+    lastVolt[0] = volt[0]
+    lastVolt[1] = volt[1]
     
     # 4725の電圧を送信 
     SetVolt(voltNum4725 ,dacAddress4725)
     # 4726の電圧を送信 
     SetVolt(voltNum4726 ,dacAddress4726)
-   
     
+    if setNT == 0:
+        setNT = 1
+        print("NTSetTime......")
+        time.sleep(1)
     
     
     
