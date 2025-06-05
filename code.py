@@ -14,8 +14,8 @@ cascade = cv2.CascadeClassifier(cascade_path)
 # End
 
 global preVoltX,preVoltY
-preVoltX = 0.0
-preVoltY = 0.0
+preVoltX = 4095.0 / 2.0
+preVoltY = 4095.0 / 2.0
 
 def Camera():
     ret, frame = cap.read()
